@@ -7,19 +7,12 @@ def read_lines(path):
         data = fi.read()
     lines = [l.strip() for l in data.strip().split("\n")]
     return lines
-        
-def mkdir_p(path):
-    os.makedirs(path, exist_ok=True)
-
-def safe_open_w(file):
-    ''' Open "path" for writing, creating any parent directories as needed. '''
-    mkdir_p(os.path.dirname(file))
-    return open(file, 'w', encoding="utf-8")
 
 def save_messages(msg_list, fpath):
+    os.makedirs(os.path.dirname(fpath), exist_ok=True)
     print("Saving to {}".format(fpath))
-    with safe_open_w(fpath) as fo:
-        json.dump(msg_list, fo)
+    with open(fpath, 'w', encoding="utf-8") as fo:
+        json.dump(msg_list, fo, indent=4, ensure_ascii=False)
 
 def message_to_dict(message):
     reply_message_id = None
