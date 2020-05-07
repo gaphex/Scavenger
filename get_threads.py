@@ -1,7 +1,6 @@
 import pandas as pd
 import json
 
-from tensorflow.keras.utils import Progbar
 from glob import glob
 from collections import defaultdict
 from utils import save_messages
@@ -79,17 +78,17 @@ def deduplicate_threads(threads):
         
     return filtered
 
-def main():
+def export_threads():
     all_threads = []
     chats = glob(GLOB)
-    bar = Progbar(len(chats))
 
     for shard in chats:
         all_threads += get_threads(shard)
-        bar.add(1)
+        print(f"{shard} : Done .")
         
     save_messages(all_threads, EXPORT_PATH)
+    print(f"Exported {len(all_threads)} threads")
 
 
 if __name__ == "__main__":
-    main()
+    export_threads()

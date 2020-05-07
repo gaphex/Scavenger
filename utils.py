@@ -10,7 +10,6 @@ def read_lines(path):
 
 def save_messages(msg_list, fpath):
     os.makedirs(os.path.dirname(fpath), exist_ok=True)
-    print("Saving to {}".format(fpath))
     with open(fpath, 'w', encoding="utf-8") as fo:
         json.dump(msg_list, fo, indent=4, ensure_ascii=False)
 
