@@ -1,7 +1,6 @@
 import pandas as pd
 import json
 
-from tensorflow.keras.utils import Progbar
 from glob import glob
 from collections import defaultdict
 from utils import save_messages
@@ -35,7 +34,7 @@ def get_thread(message, current_thread, i2m):
         next_msg = i2m[reply_id]
         return get_thread(next_msg, current_thread, i2m)
 
-def get_threads(filename, min_len=3):
+def get_threads(filename, min_len=3, dedup_thr=3):
     with open(filename) as fi:
         dataset = json.load(fi)
         
@@ -47,22 +46,22 @@ def get_threads(filename, min_len=3):
         if len(thr) > min_len:
             threads.append(thr)
             
-    threads = deduplicate_threads(threads)
+    threads = deduplicate_threads(threads, thr=dedup_thr)
     msg_threads = [[id2msg[m][TXT_KEY] for m in thread] 
                    for thread in threads]
     
     return msg_threads
 
 
-def already_exists(seq, filtered_seqs):
+def already_exists(seq, filtered_seqs, thr):
     exists = False
     for testseq in filtered_seqs:
         if len(testseq) >= len(seq):
-            if seq == testseq[:len(seq)]:
+            if seq[:thr] == testseq[:len(seq)][:thr]:
                 exists = True
     return exists
 
-def deduplicate_threads(threads):
+def deduplicate_threads(threads, thr):
     ids = threads
     start2id = defaultdict(list)
     for i, k in enumerate(ids):
@@ -73,23 +72,23 @@ def deduplicate_threads(threads):
         sub_filtered = []
         for test_seq in sorted([ids[s] for s in start2id[k]], 
                                key = lambda x: len(x))[::-1]:
-            if not already_exists(test_seq, sub_filtered):
+            if not already_exists(test_seq, sub_filtered, thr):
                 sub_filtered.append(test_seq)
         filtered += sub_filtered
         
     return filtered
 
-def main():
+def export_threads():
     all_threads = []
     chats = glob(GLOB)
-    bar = Progbar(len(chats))
 
     for shard in chats:
         all_threads += get_threads(shard)
-        bar.add(1)
+        print(f"{shard} : Done .")
         
     save_messages(all_threads, EXPORT_PATH)
+    print(f"Exported {len(all_threads)} threads")
 
 
 if __name__ == "__main__":
-    main()
+    export_threads()
